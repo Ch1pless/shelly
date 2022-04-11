@@ -7,6 +7,7 @@
 #include <set>
 // auxiliary
 #include <filesystem>
+namespace fs = std::filesystem;
 #include <stdexcept>
 // process control
 #include <sys/wait.h>
@@ -54,7 +55,7 @@ STATUS_CODE callCommand(std::vector<std::string>);
 
 // SHELL CONTROL
 STATUS_CODE beginShell() {
-  bool history_exists = std::filesystem::exists(std::filesystem::path(shell_name + ".history"));
+  bool history_exists = fs::exists(fs::path(shell_name + ".history"));
   if (history_exists) {
     std::ifstream f_in;
     f_in.open(shell_name + ".history");
@@ -211,6 +212,60 @@ STATUS_CODE terminateall(std::vector<std::string> args) {
   return SUCCESS;
 }
 
+STATUS_CODE maik(std::vector<std::string> args) {
+  if (sz(args) != 2) return INVALID_NARG;
+  if (fs::exists(fs::path(args[1]))) return INVALID_ARG;
+  std::fstream nFile;
+
+  nFile.open(args[1], std::ios::out);
+
+  if (!nFile) return FAILURE;
+
+  nFile << "Draft";
+  nFile.close();
+
+  return SUCCESS;
+}
+
+STATUS_CODE dwelt(std::vector<std::string> args) {
+  if (sz(args) != 2) return INVALID_NARG;
+  fs::file_status stats = fs::status(fs::path(args[1]));
+  if (!fs::exists(stats)) {
+    std::cout << "Dwelt not.\n";
+  } else if (fs::is_directory(stats)) {
+    std::cout << "Abode is\n";
+  } else if (fs::is_regular_file(stats)) {
+    std::cout << "Dwelt indeed.\n";
+  } else {
+    return FAILURE;
+  }
+  return SUCCESS;
+}
+
+STATUS_CODE coppy(std::vector<std::string> args) {
+  if (sz(args) != 3) return INVALID_NARG;
+  fs::file_status src_stats = fs::status(fs::path(args[1]));
+  fs::file_status dst_stats = fs::status(fs::path(args[2]));
+
+  if (!fs::exists(src_stats) || fs::exists(dst_stats) /* TODO: || !fs::exists(dst_directory) */) {
+    return INVALID_ARG;
+  }
+
+  // TODO: Copy the file
+
+  return FAILURE;
+}
+
+STATUS_CODE coppyabode(std::vector<std::string> args) {
+  if (sz(args) != 3) return INVALID_NARG;
+  fs::file_status src_stats = fs::status(fs::path(args[1]));
+  fs::file_status dst_stats = fs::status(fs::path(args[2]));
+
+  // TODO: Copy the directory
+
+  return FAILURE;
+}
+
 STATUS_CODE callCommand(std::vector<std::string> args) {
   if      (args[0] == "history")      return history(args);
   else if (args[0] == "byebye")       return byebye(args);
@@ -220,6 +275,10 @@ STATUS_CODE callCommand(std::vector<std::string> args) {
   else if (args[0] == "terminate")    return terminate(args);
   else if (args[0] == "repeat")       return repeat(args);
   else if (args[0] == "terminateall") return terminateall(args);
+  else if (args[0] == "maik")         return maik(args);
+  else if (args[0] == "dwelt")        return dwelt(args);
+  else if (args[0] == "coppy")        return coppy(args);
+  else if (args[0] == "coppyabode")   return coppyabode(args);
   return FAILURE;
 }
 
