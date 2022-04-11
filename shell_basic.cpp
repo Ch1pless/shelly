@@ -246,14 +246,18 @@ STATUS_CODE coppy(std::vector<std::string> args) {
   if (sz(args) != 3) return INVALID_NARG;
   fs::file_status src_stats = fs::status(fs::path(args[1]));
   fs::file_status dst_stats = fs::status(fs::path(args[2]));
+  fs::path dst_dir = fs::path(args[2]).parent_path();
+  bool dir_exists = dst_dir.string() == "" || fs::exists(dst_dir);
 
-  if (!fs::exists(src_stats) || fs::exists(dst_stats) /* TODO: || !fs::exists(dst_directory) */) {
+  if (!fs::exists(src_stats) || fs::exists(dst_stats) || !dir_exists) {
     return INVALID_ARG;
   }
 
-  // TODO: Copy the file
-
-  return FAILURE;
+  if (fs::copy_file(args[1], args[2])) {
+    return SUCCESS; 
+  } else {
+    return FAILURE;
+  }
 }
 
 STATUS_CODE coppyabode(std::vector<std::string> args) {
@@ -261,9 +265,13 @@ STATUS_CODE coppyabode(std::vector<std::string> args) {
   fs::file_status src_stats = fs::status(fs::path(args[1]));
   fs::file_status dst_stats = fs::status(fs::path(args[2]));
 
-  // TODO: Copy the directory
+  if (!fs::exists(src_stats) || fs::exists(dst_stats)) {
+    return INVALID_ARG;
+  }
 
-  return FAILURE;
+  fs::copy(fs::path(args[1]), fs::path(args[2]), fs::copy_options::recursive);
+
+  return SUCCESS;
 }
 
 STATUS_CODE callCommand(std::vector<std::string> args) {
